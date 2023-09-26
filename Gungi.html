@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title id="titulo">GUNGI Enhanced</title>
+    <link rel="shortcut icon" href="img/icon.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <!--  <meta name="viewport" content="width=devicewidth, minimal-ui">-->
+    <link rel="stylesheet" href="styles.css">
+    <script src="pieces.js"></script>
+    <script src="actions.js"></script>
+    <script src="Army.js"></script>
+    <script src="Square.js"></script>
+    <script src="Engine.js"></script>
+    <script src="Notation.js"></script>
+    <script src="AnimationManager.js"></script>
+    <script src="Button.js"></script>
+    <script src="Hand.js"></script>
+    <script src="Arrangement.js"></script>
+    <script src="Board.js"></script>
+    <script src="SquareActions.js"></script>
+    <script src="PlayerAction.js"></script>
+    <script src="Renderer.js"></script>
+    <script src="Parser.js"></script>
+    <script src="RecordPlayer.js"></script>
+    <script src="AI.js"></script>
+    <script src="Gungi.js"></script>
+    <script src="WindowManager.js"></script>
+</head>
+<body id="cuerpo">
+	<div id ="w_menu">
+		<input type="file" id="cargar" style="display: none" accept=".pg"/>
+		<input type="file" id="cargarRep" style="display: none"/>
+		<div style="margin-top: 2%; border-bottom: 1px solid;padding-bottom: 20px;">
+              <div class="container">GUNGI</div>
+		    <!--<span style="font-size:100px;margin-bottom: -25px;display: inline-block;color:#e7d291;font-family: Paytone;">GUNGI</span><br>-->
+		    <span class="styled">Enhanced</span>
+		</div><br>
+		<div id="group-opciones">
+			<div id="w_opciones">
+				<button id="btn-volver" onclick="WindowManager.settings.close()"><img style="height: 80%; cursor:pointer" src="img/back.png"></button>
+				<table>
+					<tr>
+						<td style="width: 10%"></td>
+						<td style="width: 40%"><img id="lado-arriba" class="player" src="img/p_white.png" onclick="Gungi.toggleCPUUp(this)"></td>
+						<td id="orden-arriba" style="width: 16%;font-family: 'Paytone';text-shadow: 0 0 7px #4e0a79;" class="orden" onclick="Gungi.toggleFirst()">1°</td>
+						<td style="width: 34%"></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td colspan="2"><img id="tablero-img" src="img/Tablero.png"><img class="lado" src="img/lado.png" onclick="Gungi.changeSide()"></td>
+						<td><button id="btn-corona" onclick="Gungi.toggleCrown(this)"><span>CON</span><br> Captura con Corona</button></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><img id="lado-abajo" class="player" src="img/p_black.png" onclick="Gungi.toggleCPUDown(this)"></td>
+						<td id="orden-abajo" style="width: 16%;font-family: 'Paytone';text-shadow: 0 0 7px #4e0a79;" class="orden" onclick="Gungi.toggleFirst()">2°</td>
+						<td><button id="btn-comenzar" onclick="Gungi.newGame(); WindowManager.menu.close(); WindowManager.settings.close()">¡Comenzar!</button></td>
+					</tr>
+				</table>
+			</div>
+			<div id="group-izq">
+				<button id="btn-nueva" class="boton-menu" onclick="WindowManager.settings.open()">Nueva Partida</button>
+			</div>
+			<div id="group-der">
+				<button id="btn-cargar" class="boton-menu" onclick="document.getElementById('cargar').click();">Cargar Partida</button>
+				<button id="btn-reproducir" class="boton-menu" onclick="RecordPlayer.open()">Reproducir Registro</button>
+				<button id="btn-tutorial" class="boton-menu" onclick="WindowManager.manual.open()">Manual de Uso</button>
+			</div>
+		</div>
+		<span id="desarrollador">Desarrollado por Julián Delekta</span>
+	</div>
+
+    <ul class="circles"> <li></li> <li></li> <li></li> <li></li> <li></li> <li></li> <li></li> <li></li> <li></li> <li></li> </ul>
+            
+	<table id="decoracion">
+		<tr><td colspan="2"><img id="jaque" title="Jaque" src="img/jaque.png"/></td></tr>
+		<tr>
+			<td colspan="2"><img id="turno" src="img/turnoN.png" style="width:150px; opacity: 1"/></td>
+		</tr>
+		<tr><td><img id="recuperacion" title="Recuperación Forzada" src="img/recuperacion.png" style="width: 45px"/></td>
+			<td><img id="reubicacion" title="Reubiación Forzada" src="img/reubicacion.png"/></td></tr>
+		<tr><td><img id="traicion" tile="Traición" src="img/traicion.png"/></td>
+			<td><img id="corona" title="Coronación" src="img/corona.png"/></td></tr>
+		<tr>
+			<td><img id="reclutamiento" title="Reclutamiento" src="img/reclutamiento.png"/></td>
+		</tr>
+	</table>
+	<div id="snackbars"></div>
+	<div id="panel">
+		<button class="panel-btn" onclick="Gungi.save()">Guardar Partida</button><br>
+		<button class="panel-btn" onclick="Renderer.switchPromotion(this)">Ocultar Ascenso</button><br>
+		<button class="panel-btn" onclick="WindowManager.leave.open()">Abandonar Partida</button>
+	</div>
+	<canvas id="canvas" style="position:fixed; left:0px; top:0px; width:100%; height:100%;" ></canvas>
+	<div id="w_cortina">
+	</div>
+	<table id="w_victoria">
+		<tr style="height: 75%">
+			<td id="w_conGanador" style="width:50%; line-height: 50px">
+				<span class="impact">GANA</span> el<br>
+				<span class="impact">EJÉRCITO</span><br>
+				<span id="w_ganador" class="impact">NEGRO</span>
+				<br>por <span id="w_motivo">Jaque Mate</span>
+			</td>
+			<td id="w_sinGanador" style="width:50%; line-height: 50px">
+				<span class="impact">Empate</span> 
+				<br>por <span class="impact">Stale Mate</span>
+			</td>
+			<td>
+				<textarea id="registro-victoria" readonly></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td><div style="margin-left: 25%; width: 50%">
+				<button class="panel-btn" onclick="Gungi.newGame();">Nueva Partida</button>
+				<button class="panel-btn" onclick="WindowManager.menu.open();WindowManager.victory.close();">Ir al Menú</button></div>
+			</td>
+			<td><div style="margin-left: 25%; width: 50%">
+				<button class="panel-btn" onclick="Notation.saveRecord()">Guardar Registro</button>
+				<button class="panel-btn" onclick="WindowManager.player.open();RecordPlayer.loadRecord(document.getElementById('registro-victoria').value)">Reproducir Registro</button></div>
+			</td>
+		</tr>
+	</table>
+	<div id="w_abandonar">
+		<div id="cartel-mensaje">¿Abandonar partida y volver al menú principal?</div>
+		<div>
+            <button class="boton-abandonar" style="margin-top:10px;margin-right:50px" onclick="WindowManager.menu.open(); WindowManager.leave.close()">Sí</button>
+            <button class="boton-abandonar" onclick="WindowManager.leave.close()">No</button>
+        </div>
+	</div>
+	<table id="registro">
+		<tr><td class='numRegistro'>1.</td></tr>
+	</table>
+	<div id="w_reproductor">
+		<input type="file" id="cargarReg" style="display: none"/>
+		<div id="rep-der">
+			<div class="res" id="res-up"></div>
+			<canvas id="rep-canvas"></canvas>
+			<div class="res" id="res-down"></div>
+		</div>
+		<div id="rep-izq">	
+			<table id="movis">
+			</table>
+			<div id="comentarios"></div>
+			<div id="opc">
+				<button id="rep-ant" style="width: 60px;height: 20px;margin: 3px;">◄</button>
+				<button id="rep-sig" style="width: 60px;height: 20px;margin: 3px;">►</button>
+				<br>
+				<br>
+				<button id="rep-car" onclick="RecordPlayer.open()">Cargar Registro</button><br>
+				<button id="rep-men" onclick="WindowManager.player.close()">Ir al Menú</button>
+			</div>
+		</div>
+	</div>
+	<div id="w_manual">
+		<button id="volver" onclick="WindowManager.manual.close()">Volver al Menú</button>
+		<div id="indices">
+			<a href="#a_inicio" 		class="indice">• Inicio</a><br>
+			<a href="#a_nueva" 			class="indice">• Nueva Partida</a><br>
+			<a href="#a_batalla" 		class="indice">• Batalla</a><br>
+			<a href="#a_reserva" 		class="indice">• Reserva</a><br>
+			<a href="#a_acciones" 		class="indice">• Acciones</a><br>
+			<a href="#a_informacion" 	class="indice">• Información</a><br>
+			<a href="#a_recuperacion" 	class="indice">• Recuperacion Forzada</a><br>
+			<a href="#a_reubicacion" 	class="indice">• Reubicación Forzada</a><br>
+			<a href="#a_reclutamiento" 	class="indice">• Reclutamiento Forzado</a><br>
+			<a href="#a_corona" 		class="indice">• Captura con Coronación</a><br>
+			<a href="#a_ascenso" 		class="indice">• Ascenso</a><br>
+			<a href="#a_victoria" 		class="indice">• Victoria</a><br>
+			<a href="#a_formato" 		class="indice">• Formato de Partida</a><br>
+			<a href="#a_reproductor" 	class="indice">• Reproductor de Registro</a>
+
+		</div>
+		<div id="content">
+			<h1 style="font-size: 60px;margin-bottom: 0px;text-align: center;">Gungi</h1>
+			<h3 style="text-align: center;margin-top: 0;">Manual de uso</h3>
+			<br>
+			<div id="maclar">
+					Este manual no tiene por objetivo explicar las Reglas del Gungi ni indagar en estrategias. Es una guía con el propósito de enseñarle al jugador cómo desarrollar una partida de Gungi en este programa y guiarlo en el entendimiento de cada uno de los elementos.
+			</div><br><br>
+			<h3 id="a_inicio">Inicio</h3>
+						Una vez que se abre el programa la primera pantalla es el <b>menú principal</b>. En esta ventana se puede crear una <i>Nueva Partida</i>, <i>Cargar una Partida</i> guardada en formato ".pg", abrir el Reproductor de Registros y abrir este manual.<br><br>
+			<h3 id="a_nueva">Nueva Partida</h3>
+			Empiece una <b>Nueva Partida</b> pulsando el botón. Debería ver una ventana igual a esta. <br><img class="center" src="manual/nueva.png"> <br> En la figura: <br> <b>1.</b> Cambia a los Ejércitos de Lado <br> <b>2.</b> Indica que ejército juega primero <br> <b>3.</b> Indica si dicho ejército es jugado por una persona o por la CPU<br><b>4.</b> Indica si se juega con captura con coronación o no.<br><br>Una vez que elija la configuración adecuada pulse <i>Comenzar</i> y debería ver esta pantalla:<br><br>
+			<img style="width: 500px" src="manual/formacion.png"><br><br>
+			Como se inicia en la etapa de <b>Formación Inicial</b> solo se muestra la parte del tablero correspondiente al ejército de turno y las piezas de su reserva.<br><br>
+			<img align="left" style="height: 60px; margin-right: 10px" src="manual/turno.png">
+			Este cartel ubicado en el margen izquierdo indica a qué ejército le pertenece el <b>Turno</b>, cambiando de diseño entre Negro y Blanco.<br><br>
+			Para colocar una pieza en el territorio debe cliquear sobre ella y posteriormente cliquear sobre una casilla. Si el movimiento no es legal aparecerá un cartel advirtiendo de eso. Si una pieza sobre el tablero no le convence cliqueé sobre ella y volverá a la reserva.<br>
+			Si está interesado en saber cómo están compuestas las torres apriete el botón secundario sobre una de ellas.<br><br>
+			<img src="manual/otracara.png" align="right" style="height: 30px;margin-left: 10px;">
+			Los <u>Peones</u> muestran una letra de color indicando cuál es la pieza en la <b>otra cara</b>.<br><br>
+			<img src="manual/hecho.png" align="right" style="height: 50px;margin-left: 10px;">
+			Cuando termine de colocar todas las piezas en el tablero aparecerá este botón, si lo pulsa da por terminado su turno.<br><br>
+			<h3 id="a_batalla">Batalla</h3>
+			<div style="text-align: center;"><img style="height: 70px" src="manual/batalla.png"></div><br>
+			Una vez que usted y su adversario hayan colocado todas la piezas de su Reserva en el tablero, aparece este cartel inidicando el comienzo de la Batalla.<br>
+			Ahora va a tener la oportunidad de realizar una <b>acción</b> en su turno.<br> 
+			<h3 id="a_reserva">Reserva</h3>
+			<img align="left" style="height: 60px; margin-right: 10px" src="manual/reserva.png"> En la esquina inferior izquierda o en la superior derecha está el botón de la <b>Reserva</b>. Cuando pulse este botón se va a abrir la caja correspondiente a su ejército, mostrando todas las piezas que tenga en la Reserva.<br><br>
+			Cuando quiera renovar tiene que abrir la Reserva y seleccionar alguna de las piezas. Una vez que lo haga, la pieza  elegida va a aparecer en su mano y deberá cliquear sobre una <u>casilla disponible</u> para colocarla en el tablero.<br>
+			Al levantar una pieza de la Reserva, se puede apreciar cómo algunas casillas en el tablero se tornan grises, esto indica que no se puede colocar la pieza en dicha casilla, cumpliendo con las reglas del juego.<br><br>
+			<h3 id="a_acciones">Acciones</h3>
+			Para realizar las acciones primero va a tener que seleccionar una pieza de su ejército en el Tablero haciendo clic en ella y aparecerán las acciones disponibles.<br><br>
+			<img src="manual/accion.png" style="margin-right: 30px" align="left">
+			<ul style="list-style-type:circle;">
+				<li>La pieza verde es la actualmente <b>seleccionada</b>, la que realiza la acción.</li>
+				<li>Las casillas vacías celestes son para realizar un <b>movimiento</b> normal.</li>
+				<li>Las piezas rojas son aquellas a las cuales se pueden <b>capturar</b>.</li>
+				<li>Las piezas azules son las piezas aliadas a las cuales se puede hacer un <b>salto encima</b>.</li>
+			</ul><br>
+			Algunas piezas que selecciones van a mostrar una serie de <b>Acciones de Casilla</b>. Las mismas se muestran como botones sobre las casillas involucradas. Al hacer clic sobre alguno de ellos se realizará la acción correspondiente.<br> Estas posibles acciones son:<br><br>
+			<img class="il" src="img/cambio.png" align="left">Cambia la <b>selección</b> de la pieza actual a esa pieza.<br><br>
+			<img class="il" src="img/encima.png" align="left"><b>Salto encima</b>.<br><br>
+			<img class="il" src="img/captura.png" align="left"><b>Captura en movimiento</b>.<br><br>
+			<img class="il" src="img/permutacion.png" align="left"><b>Permutación</b>.<br><br>
+			<img class="il" src="img/sacrificio.png" align="left"><b>Sacrificio</b>. <br><br>
+			<img class="il" src="img/sustitucion.png" align="left"><b>Sustitución</b>.<br><br>
+			<img style="height:25px" src="img/torre1.png" align="left">
+			<img style="height:25px" src="img/torre2.png" align="left">
+			<img class="il" src="img/torre3.png" align="left"><b>Captura en torre</b>. Indica el nivel de la torre que se puede capturar.<br><br>
+			<img src="manual/montura1.png" style="width: 140px; margin-right: 10px;" align="left">
+			<img src="manual/montura2.png" style="width: 140px; margin-right: 10px;" align="left">
+			Si en la torre de la pieza seleccionada aparece el botón de cambio significa que la base es una pieza con Montura. Una vez que pulse el botón cambiará la selección y aparecerán en morado aquellas casillas disponibles para moverse.
+			
+			<h3 id="a_informacion">Información</h3>
+			Sobre el panel izquierdo alrededor del cartel de Turno se muestra información relativa al juego. Al pasar el cursor sobre los iconos deberías ver un cartel diciendo qué significa.<br><br>
+			<img class="de" src="manual/corona.png" align="left">Indica que tu Rey está en <b>Jaque</b>. En tu turno vas a tener que protegerlo o vas a perder.<br><br>
+			Los efectos aparecen en verde e indican los efectos que el anterior ejército activó.<br><br>
+			<img class="de" src="manual/recuperacion.png" align="left">Hubo una pieza <b>Recuperada</b>.<br><br><br>
+			<img class="de" src="manual/reubicacion.png" align="left">Se capturó un Grifo y se debe <b>Reubicar</b> la Fortaleza o el Cañón.<br><br>
+			<img class="de" src="manual/reclutamiento.png" align="left">Se capturó una pieza con el Mayor y se debe <b>Reclutar</b>.<br><br><br>
+			<img class="de" src="manual/traicion.png" align="left">Indica que un Bufón activó el efecto de <b>Traición</b> y las piezas por debajo se voltearon.<br><br>
+			<img class="de" src="manual/coronacion.png" align="left"> Si se juego con Captura con Corona, indica que un Rey <b>coronó</b> la Fortaleza enemiga con una pieza alida.<br><br>
+			<h4 id="a_recuperacion">Recuperacion Forzada</h4>
+			<img src="manual/recuperada.png" align="right" style="margin-left: 10px">
+			Si al mover o capturar una pieza se activa la <b>Recuperación Forzada</b>, dicha pieza aparece en la reserva o en la del enemigo (siguiendo las reglas) con un fondo de color, como se muestra en la imagen, diferenciando entre Recuperada (el caso del Asesino) o Recuperada Enemiga (el caso del Grifo). Estas piezas no se pueden renovar hasta que pase el turno necesario.
+			<h4 id="a_reubicacion">Reubicación Forzada</h4>
+			Al capturar un Grifo enemigo, se activa el efecto de <b>Reubicación Forzada</b>. La Fortaleza o el Cañón aparece en la mano y como ocurre en la Renovación va a tener que seleccionar una casilla donde ubicarlo.
+			<h4 id="a_reclutamiento">Reclutamiento Forzado</h4>
+			Similar a la Reubicación Forzada, cuando capture una pieza con el Capitán la pieza aparece en la mano y va a tener que seleccionar una casilla donde ubicarla.
+			<h4 id="a_corona">Captura con Coronación</h4>
+			Cuando realice una <b>Captura con Coronación</b> con el Rey se abrirá la reserva para elegir una pieza a <b>Coronar</b>, en caso de no tener ninguna simplemente se voltea la pieza. Si usted prefiere voltear la pieza sin realizar reemplazo, entonces pulse el botón <b>Sin Reemplazo</b>.
+			<h4 id="a_ascenso">Ascenso</h4>
+			<img src="manual/expansion.png" align="left" style="margin-right: 10px;height: 100px;">
+			Durante la batalla algunas casillas tienen un marco de color, esta indica las casillas que están bajo efecto de <b>Ascenso</b>. Es posible ocultar o mostrar su visualización con el botón <img src="manual/ocultar.png" style="height: 30px">
+			<h3 id="a_victoria">Victoria</h3>
+			Una vez que se gana una partida aparece la ventana de <b>Victoria</b>.<br><br>
+			<div style="text-align: center"><img src="manual/victoria.png"></div><br>
+			Indica el ejército que ganó y si ganó por <b>Jaque Mate</b> o por <b>Doble Bufón</b>. Cualquier otra falta no es considerada el fin del juego, ya que el mismo programa evita que las hagas.<br>
+			También se muestra el registro de la partida, el cual se puede <u>guardar</u> o <u>reproducir</u>.
+			<h3 id="a_formato">Formato de Partida</h3>
+			Las partidas se guardan con el formato ".pg" (Partida Gungi), y sobre el mismo formato son leídas. Evite modificar el archivo ya que podría causar errores de lectura.
+			<h3 id="a_reproductor">Reproductor de Registro</h3>
+			Si desde el Menú Principal cliquea en <b>Reproducir Registro</b> se va a abrir una ventana solicitando una archivo de registro. Puede ser de cualquier tipo de archivo, pero deberá tener el formato de acuerdo al PGuN. En caso de error al procesarlo, se le informará de ello.<br><br>
+			Una vez cargado el archivo se abre la ventana.<br><br>
+			<div style="text-align: center"><img src="manual/reproductor.png"></div><br>
+			Sobre las secciones por encima y por debajo del tablero, están las <b>Reservas</b> de los ejércitos de cada lado.<br> Si una pieza tiene una letra por encima, como el Grifo en la imagen, indica cuál es la pieza en su otra cara. Si una pieza tiene un fondo de color, como mientras se juega un partida, dicha pieza está <b>recuperada</b>.<br><br>
+			Sobre el panel derecho se listan todos los <b>movimientos</b> que hubo en la partida cargada. Si selecciona alguno, actualiza el tablero al momento en que se realizó ese movimiento.<br><br> Si en el registro el reproductor encontró un comentario de la forma: <span class="string">";comentario;"</span> coloca un borde de color sobre el movimiento comentado. <br>
+			Debajo de la lista de movimientos está la <b>caja de comentarios</b>. Cuando seleccione un movimiento comentado, el texto aparece en este sector.
+			Con las flechas en las opciones usted puede <u>avanzar</u> o <u>retroceder</u> respectivamente por los movimientos, o análogamente pulsando las flechas izquierda o derecha del teclado.<br>
+			Si le interesa cómo está conformada una torre en el tablero, puede cliquearla.
+		</div>
+	</div>
+	<script src="main.js"></script>
+</body>
+</html>
